@@ -1,21 +1,20 @@
 #include <Servo.h>
 #include <Stepper.h>
 
-/*
-  Blink
-  Turns on an LED on for one second, then off for one second, repeatedly.
- 
-  This example code is in the public domain.
- */
-#define fanPin 4
-#define servoPin 7
+const int fanPin =   4;  // Pin for controlling the bubble blowing CPU fan
+const int servoPin = 7;  // Pin for controlling the bubble arm servo motor
 
-#define pwmA 3
-#define pwmB 11
-#define brakeA 9
-#define brakeB 8
-#define dirA 12
-#define dirB 13
+const int lowerBoundrySwitch =  2; // Input pin for the switch signalling the lower boundary of the shelf
+const int upperBoundrySwitch = 10; // Input pin for the switch signalling the upper boundary of the shelf
+
+// Pins used by the Arduino Motor Shield
+// The Motor Shield controlls the stepper motor used for raising and lowering the shelf
+const int pwmA =    3;
+const int pwmB =   11;
+const int brakeA =  9;
+const int brakeB =  8;
+const int dirA =   12;
+const int dirB =   13;
 
 // Servo boundry values
 const int arm_open_pos = 3;
@@ -28,39 +27,38 @@ Stepper myStepper(stepsPerRevolution, dirA, dirB);
 Servo bubbleArm;
 
 void setup() {                
-  // initialize the digital pin as an output.
-  // Pin 13 has an LED connected on most Arduino boards:
   pinMode(fanPin, OUTPUT);
   bubbleArm.attach(servoPin);  
   bubbleArm.write(arm_closed_pos);
 
- // set the PWM and brake pins so that the direction pins  // can be used to control the motor:
- pinMode(pwmA, OUTPUT);
- pinMode(pwmB, OUTPUT);
- pinMode(brakeA, OUTPUT);
- pinMode(brakeB, OUTPUT);
- digitalWrite(pwmA, LOW);
- digitalWrite(pwmB, LOW);
- digitalWrite(brakeA, LOW);
- digitalWrite(brakeB, LOW);
+  motorShieldSetup();
  
- // initialize the serial port:
- Serial.begin(9600);
- // set the motor speed (for multiple steps only):
- myStepper.setSpeed(240);
+  // set the motor speed (for multiple steps only):
+  myStepper.setSpeed(240);
 }
 
 void loop() {
-//  Stepper Test
-stepperTest();
+  // Stepper Test
+  stepperTest();
 
-//  Fan Test
-//  fanTest();
+  // Fan Test
+  // fanTest();
 
-//  Servo Test
-//  servoTest();
+  // Servo Test
+  // servoTest();
 }
 
+void motorShieldSetup() {
+  // set the PWM and brake pins so that the direction pins can be used to control the motor:
+  pinMode(pwmA, OUTPUT);
+  pinMode(pwmB, OUTPUT);
+  pinMode(brakeA, OUTPUT);
+  pinMode(brakeB, OUTPUT);
+  digitalWrite(pwmA, LOW);
+  digitalWrite(pwmB, LOW);
+  digitalWrite(brakeA, LOW);
+  digitalWrite(brakeB, LOW);
+}
 void fanTest(){
   digitalWrite(fanPin, HIGH);   // set the LED on
   delay(5000);              // wait for a second
@@ -85,106 +83,18 @@ void servoTest(){
 void stepperTest(){
   digitalWrite(pwmA, HIGH);
   digitalWrite(pwmB, HIGH);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
-  myStepper.step(2);
+  for (int i = 0; i < 100; i++) {
+    myStepper.step(2);
+  }
+  digitalWrite(pwmA, LOW);
+  digitalWrite(pwmB, LOW);
+
+  delay(1000);
+  digitalWrite(pwmA, HIGH);
+  digitalWrite(pwmB, HIGH);
+  for (int i = 0; i < 100; i++) {
+    myStepper.step(-2);
+  }
   digitalWrite(pwmA, LOW);
   digitalWrite(pwmB, LOW);
 
