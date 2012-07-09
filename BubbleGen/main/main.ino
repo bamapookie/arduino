@@ -4,13 +4,17 @@
 // *** Software Configuration ***
 
 // Servo boundry values
-const int armOpenPos = 3;
+const int armOpenPos = 3; // These should change
 const int armClosedPos = 180;
 
 // Stepper motor settings
 const int shelfMotorSpeed = 240;
 
 // *** Hardware Configuration ***
+
+// Max and min positions of the servo
+const int armMinPos = 3;
+const int armMaxPos = 180;
 
 // Configuration for the rh7-1403 stepper
 const int shelfStepsPerRevolution = 50;
@@ -74,7 +78,7 @@ void reset() {
   while (!digitalRead(shelfUpperBoundarySwitch)) {
     shelfUp();
   }
-  armServo.write(armClosedPos);
+  
 }
 
 boolean isAutomatic() {
@@ -89,7 +93,51 @@ void autoMode() {
 void manualMode() {
   // TODO Implement this.
 }
+/*
+ * Movement commands
+ */
 
+boolean shelfUp() {
+  if (digitalRead(shelfUpperBoundarySwitch)) {
+    digitalWrite(pwmA, LOW);
+    digitalWrite(pwmB, LOW);
+    return false;
+  } else {
+    digitalWrite(pwmA, HIGH);
+    digitalWrite(pwmB, HIGH);
+    myStepper.step(1);
+    return true;
+  }
+}
+
+boolean shelfDown() {
+  if (digitalRead(shelfLowerBoundarySwitch)) {
+    digitalWrite(pwmA, LOW);
+    digitalWrite(pwmB, LOW);
+    return false;
+  } else {
+    digitalWrite(pwmA, HIGH);
+    digitalWrite(pwmB, HIGH);
+    myStepper.step(-1);
+    return true;
+  }
+}
+
+void armOpen() {
+  armServo.write(armOpenPos);
+}
+
+void armClose() {
+  armServo.write(armClosedPos);
+}
+
+void fanOn() {
+  digitalWrite(fanPin, HIGH);
+}
+
+void fanOff() {
+  digitalWrite(fanPin, LOW);
+}
 
 /*
  * Setup methods.
