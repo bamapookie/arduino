@@ -4,11 +4,14 @@
 // *** Software Configuration ***
 
 // Servo boundry values
-const int armOpenPos = 3; // These should change
-const int armClosedPos = 180;
+const int armOpenPos = 80; // These should change.  Open position must be less than closed position, or the logic in the open and close methods needs to change.
+const int armClosedPos = 100;
 
 // Stepper motor settings
 const int shelfMotorSpeed = 240;
+
+// Bubble settings
+const int bubblesPerCycle = 3;
 
 // *** Hardware Configuration ***
 
@@ -36,21 +39,22 @@ const int dirA =   12;
 const int dirB =   13;
 
 // State values
-const int stateResetting = -1; // Stationary
+const int stateResetting = -1; // Transition
 const int stateReset     =  0; // Stationary
 const int stateDipping   =  1; // Transition
 const int stateDown      =  2; // Stationary
 const int stateRaising   =  3; // Transition
 const int stateUp        =  4; // Stationary
 const int stateOpening   =  5; // Transition
-const int stateOpened    =  6; // Stationary
+const int stateOpen      =  6; // Stationary
 const int stateBlowing   =  7; // Stationary
 const int stateClosing   =  8;
 const int stateClosed    =  0; // Stationary, same as reset
 
-Stepper shelfStepper = new Stepper(stepsPerRevolution, dirA, dirB);
+Stepper shelfStepper(shelfStepsPerRevolution, dirA, dirB);
 Servo armServo;
-int state = stateReseting;
+int state = stateResetting;
+int bubbleCount = 0;
 
 void setup() {                
   pinMode(blowerFanPin, OUTPUT);
@@ -73,12 +77,10 @@ void loop() {
 }
 
 void reset() {
-  
+  state = stateResetting;
   digitalWrite(blowerFanPin, LOW);
-  while (!digitalRead(shelfUpperBoundarySwitch)) {
-    shelfUp();
-  }
-  
+  while (shelfUp()) {}
+  state = stateReset;
 }
 
 boolean isAutomatic() {
@@ -87,25 +89,76 @@ boolean isAutomatic() {
 }
 
 void autoMode() {
-  
+  while(isAutomatic()) {
+    switch(state) {
+      case stateResetting:
+        reset();
+        break;
+      case stateReset:
+        delay(500);
+        state = stateDipping;
+        break;
+      case stateDipping:
+        shelfDown();
+        break;
+      case stateDown:
+        delay(3000);
+        state = stateRaising;
+        break;
+      case stateRaising:
+        shelfUp();
+        break;
+      case stateUp:
+        delay(500);
+        state = stateOpening;
+        break;
+      case stateOpening:
+        armOpen();
+        bubbleCount = 0;
+        break;
+      case stateOpen:
+        delay(500);
+        bubbleCount++;
+        if (bubbleCount > bubblesPerCycle) {
+          state = stateClosing;
+        } else {
+          state = stateBlowing;
+        }
+        break;
+      case stateBlowing:
+        fanOn();
+        delay(500);
+        fanOff();
+        delay(500);
+        break;
+      case stateClosing:
+        armClose();
+        break;
+      default:
+      // Error
+        break;
+    }
+  }
 }
 
 void manualMode() {
   // TODO Implement this.
 }
+
 /*
- * Movement commands
+ * Movement methods
  */
 
 boolean shelfUp() {
   if (digitalRead(shelfUpperBoundarySwitch)) {
     digitalWrite(pwmA, LOW);
     digitalWrite(pwmB, LOW);
+    state = stateUp;
     return false;
   } else {
     digitalWrite(pwmA, HIGH);
     digitalWrite(pwmB, HIGH);
-    myStepper.step(1);
+    shelfStepper.step(1);
     return true;
   }
 }
@@ -114,29 +167,42 @@ boolean shelfDown() {
   if (digitalRead(shelfLowerBoundarySwitch)) {
     digitalWrite(pwmA, LOW);
     digitalWrite(pwmB, LOW);
+    state = stateDown;
     return false;
   } else {
     digitalWrite(pwmA, HIGH);
     digitalWrite(pwmB, HIGH);
-    myStepper.step(-1);
+    shelfStepper.step(-1);
     return true;
   }
 }
 
 void armOpen() {
-  armServo.write(armOpenPos);
+  if (armServo.read() <= armOpenPos) {
+    state = stateOpen;
+  } else {
+    state = stateOpening;
+    armServo.write(armOpenPos);
+  }
 }
 
 void armClose() {
-  armServo.write(armClosedPos);
+  if (armServo.read() >= armClosedPos) {
+    state = stateClosing;
+  } else {
+    state = stateClosed;
+    armServo.write(armClosedPos);
+  }
 }
 
 void fanOn() {
-  digitalWrite(fanPin, HIGH);
+  state = stateBlowing;
+  digitalWrite(blowerFanPin, HIGH);
 }
 
 void fanOff() {
-  digitalWrite(fanPin, LOW);
+  digitalWrite(blowerFanPin, LOW);
+  state = stateOpen;
 }
 
 /*
@@ -153,26 +219,5 @@ void motorShieldSetup() {
   digitalWrite(pwmB, LOW);
   digitalWrite(brakeA, LOW);
   digitalWrite(brakeB, LOW);
-}
-
-void stepperTest(){
-  digitalWrite(pwmA, HIGH);
-  digitalWrite(pwmB, HIGH);
-  for (int i = 0; i < 100; i++) {
-    myStepper.step(2);
-  }
-  digitalWrite(pwmA, LOW);
-  digitalWrite(pwmB, LOW);
-
-  delay(1000);
-  digitalWrite(pwmA, HIGH);
-  digitalWrite(pwmB, HIGH);
-  for (int i = 0; i < 100; i++) {
-    myStepper.step(-2);
-  }
-  digitalWrite(pwmA, LOW);
-  digitalWrite(pwmB, LOW);
-
-  delay(1000);
 }
 
