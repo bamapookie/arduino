@@ -2,6 +2,8 @@
 #include <Stepper.h>
 
 // *** Software Configuration ***
+// 1 = debug, 2 = info, 3 = warning, 4 = fatal
+#define LOG_LEVEL 2
 
 // Servo boundry values
 const int armOpenPos = 80; // These should change.  Open position must be less than closed position, or the logic in the open and close methods needs to change.
@@ -14,6 +16,10 @@ const int shelfMotorSpeed = 240;
 const int bubblesPerCycle = 3;
 
 // *** Hardware Configuration ***
+const int DEBUG = 1;
+const int INFO =  2;
+const int WARN =  3;
+const int FATAL = 4;
 
 // Max and min positions of the servo
 const int armMinPos = 3;
@@ -23,8 +29,8 @@ const int armMaxPos = 180;
 const int shelfStepsPerRevolution = 50;
 
 // Pin Configuration
-const int blowerFanPin =   4;  // Pin for controlling the bubble blowing CPU fan
-const int armServoPin = 7;  // Pin for controlling the bubble arm servo motor
+const int blowerFanPin = 4;  // Pin for controlling the bubble blowing CPU fan
+const int armServoPin =  7;  // Pin for controlling the bubble arm servo motor
 
 const int shelfLowerBoundarySwitch =  2; // Input pin for the switch signalling the lower boundary of the shelf
 const int shelfUpperBoundarySwitch = 10; // Input pin for the switch signalling the upper boundary of the shelf
@@ -48,7 +54,7 @@ const int stateUp        =  4; // Stationary
 const int stateOpening   =  5; // Transition
 const int stateOpen      =  6; // Stationary
 const int stateBlowing   =  7; // Stationary
-const int stateClosing   =  8;
+const int stateClosing   =  8; // Transition
 const int stateClosed    =  0; // Stationary, same as reset
 
 Stepper shelfStepper(shelfStepsPerRevolution, dirA, dirB);
@@ -56,7 +62,10 @@ Servo armServo;
 int state = stateResetting;
 int bubbleCount = 0;
 
-void setup() {                
+void setup() {
+  if (LOG_LEVEL <= DEBUG) {                // Use this form for log messages.  The compiler 
+    Serial.println(">> Starting setup.");  // will exclude it from compilation if the log 
+  }                                        // level is not met, saving sketch bytes.
   pinMode(blowerFanPin, OUTPUT);
   armServo.attach(armServoPin);
   pinMode(shelfLowerBoundarySwitch, INPUT); 
