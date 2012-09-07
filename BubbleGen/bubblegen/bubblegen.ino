@@ -62,19 +62,20 @@ Stepper shelfStepper(shelfStepsPerRevolution, dirA, dirB);
 Servo armServo;
 int state = stateResetting;
 int bubbleCount = 0;
+unsigned long milliTime = millis() + 1000;
 
 void setup() {
+  Serial.begin(9600);
+
   if (LOG_LEVEL <= DEBUG) {                // Use this form for log messages.  The compiler 
-    //Serial.println(">> Starting setup.");  // will exclude it from compilation if the log 
+    Serial.println(">> Starting setup.");  // will exclude it from compilation if the log 
   }                                        // level is not met, saving sketch bytes.
   pinMode(blowerFanPin, OUTPUT);
-  armServo.attach(armServoPin);
   pinMode(shelfLowerBoundarySwitch, INPUT_PULLUP); 
   pinMode(shelfUpperBoundarySwitch, INPUT_PULLUP); 
 
-  Serial.begin(9600);
-
   if (LOG_LEVEL != TEST) {
+    armServo.attach(armServoPin);
     motorShieldSetup();
     shelfStepper.setSpeed(shelfMotorSpeed);
 
@@ -84,11 +85,13 @@ void setup() {
 
 void loop() {
   if (LOG_LEVEL == TEST) {
-    Serial.print("Lower Boundary Switch is ");
-    Serial.println((digitalRead(shelfLowerBoundarySwitch) == HIGH) ? "HIGH" : "LOW");
-    Serial.print("Upper Boundary Switch is ");
-    Serial.println((digitalRead(shelfUpperBoundarySwitch) == HIGH) ? "HIGH" : "LOW");
-    delay(1000);
+    if (milliTime < millis()) {
+      Serial.print("The Lower Boundary Switch is ");
+      Serial.println((digitalRead(shelfLowerBoundarySwitch) == HIGH) ? "HIGH" : "LOW");
+      Serial.print("The Upper Boundary Switch is ");
+      Serial.println((digitalRead(shelfUpperBoundarySwitch) == HIGH) ? "HIGH" : "LOW");
+      milliTime = millis() + 1000;
+    }
   } else if (isAutomatic()) {
     autoMode();
   } else {
