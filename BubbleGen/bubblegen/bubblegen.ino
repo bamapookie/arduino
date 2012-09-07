@@ -2,8 +2,8 @@
 #include <Stepper.h>
 
 // *** Software Configuration ***
-// 1 = debug, 2 = info, 3 = warning, 4 = fatal
-#define LOG_LEVEL 2
+// 1 = debug, 2 = info, 3 = warning, 4 = fatal, 0 = test (debug and additional test routines)
+#define LOG_LEVEL 0
 
 // Servo boundry values
 const int armOpenPos = 80; // These should change.  Open position must be less than closed position, or the logic in the open and close methods needs to change.
@@ -16,6 +16,7 @@ const int shelfMotorSpeed = 240;
 const int bubblesPerCycle = 3;
 
 // *** Hardware Configuration ***
+const int TEST =  0;
 const int DEBUG = 1;
 const int INFO =  2;
 const int WARN =  3;
@@ -64,21 +65,31 @@ int bubbleCount = 0;
 
 void setup() {
   if (LOG_LEVEL <= DEBUG) {                // Use this form for log messages.  The compiler 
-    Serial.println(">> Starting setup.");  // will exclude it from compilation if the log 
+    //Serial.println(">> Starting setup.");  // will exclude it from compilation if the log 
   }                                        // level is not met, saving sketch bytes.
   pinMode(blowerFanPin, OUTPUT);
   armServo.attach(armServoPin);
-  pinMode(shelfLowerBoundarySwitch, INPUT); 
-  pinMode(shelfUpperBoundarySwitch, INPUT); 
+  pinMode(shelfLowerBoundarySwitch, INPUT_PULLUP); 
+  pinMode(shelfUpperBoundarySwitch, INPUT_PULLUP); 
 
-  motorShieldSetup();
-  shelfStepper.setSpeed(shelfMotorSpeed);
-  
-  reset();
+  Serial.begin(9600);
+
+  if (LOG_LEVEL != TEST) {
+    motorShieldSetup();
+    shelfStepper.setSpeed(shelfMotorSpeed);
+
+    reset();
+  }
 }
 
 void loop() {
-  if (isAutomatic()) {
+  if (LOG_LEVEL == TEST) {
+    Serial.print("Lower Boundary Switch is ");
+    Serial.println((digitalRead(shelfLowerBoundarySwitch) == HIGH) ? "HIGH" : "LOW");
+    Serial.print("Upper Boundary Switch is ");
+    Serial.println((digitalRead(shelfUpperBoundarySwitch) == HIGH) ? "HIGH" : "LOW");
+    delay(1000);
+  } else if (isAutomatic()) {
     autoMode();
   } else {
     manualMode();
